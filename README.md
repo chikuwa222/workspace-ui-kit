@@ -1,7 +1,7 @@
 # workspace-ui-kit
 
 「自分の思想を画面にする」月のひな形です。
-画面にはサンプルとして**採用管理**の4ペイン（候補者リスト・候補者の詳細・スコアカード・サイドバー）が出ますが、これを自分の仕事用に作り変えるところから月3の課題が始まります。
+雛形をベースに**グループメンバーの目標進捗管理ツール**（4ペイン構成）に改造済みです。ツールの仕様は [`docs/goal-tool-spec.md`](docs/goal-tool-spec.md) を参照してください。
 
 ## 起動する
 
@@ -12,11 +12,11 @@ npm install
 npm run dev
 ```
 
-ブラウザで `http://localhost:3000` を開くと、採用管理のサンプル画面が表示されます。
-
-![採用管理のサンプル画面：左から「部署/ポジション」「候補者リスト」「候補者ダッシュボード」「選考ステージ詳細」の4ペイン構造](docs/screenshot-workspace.png)
+ブラウザで `http://localhost:3000` を開くと、目標管理ツールの画面が表示されます。
 
 ## 構成
+
+> ツール固有の仕様（4ペイン・データ設計・進捗ルール等）は **[`docs/goal-tool-spec.md`](docs/goal-tool-spec.md)** を参照。
 
 ### 技術スタック
 
@@ -34,15 +34,16 @@ app/                Next.js App Router の画面エントリ
 components/
   ui/               shadcn の UI 部品（Button, Card, Dialog 等。編集 OK）
   primitives/       このプロジェクト独自の編集 UI 部品
-  workspace/        4ペイン本体（Pane1〜4 と関連ダイアログ）
-data/               サンプルの種データ（JSON）
+  workspace/        4ペイン本体（MemberPane / GoalListPane / GoalDetailPane / SummaryPane）
+data/               種データ（members.json / goals.json / workspace.json）
+docs/               仕様書（goal-tool-spec.md）
 hooks/              React のカスタムフック
 lib/                型定義（zod スキーマ）・ユーティリティ
 openspec/           設計の決定記録（ADR、参考資料）
 __tests__/          テスト
 ```
 
-> 道A（踏襲ルート）でよく触る場所は **`components/workspace/`**（画面の中身）と **`app/globals.css`**（色や角丸）です。
+> よく触る場所は **`components/workspace/`**（画面の中身）と **`app/globals.css`**（色や角丸）です。
 
 ### 開発コマンド
 

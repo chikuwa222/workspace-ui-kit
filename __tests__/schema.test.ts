@@ -1,23 +1,25 @@
 import { describe, it, expect } from "vitest";
 
 import {
-  candidatesSchema,
-  departmentsSchema,
+  membersSchema,
+  goalsSchema,
   workspaceSchema,
-} from "@/lib/schema";
+  calcProgress,
+  isOverdue,
+} from "@/lib/goal-schema";
 
-import positionsData from "@/data/positions.json";
-import candidatesData from "@/data/candidates.json";
+import membersData from "@/data/members.json";
+import goalsData from "@/data/goals.json";
 import workspaceData from "@/data/workspace.json";
 
 describe("data/*.json schema validation", () => {
-  it("data/positions.json は departmentsSchema を満たす", () => {
-    const result = departmentsSchema.safeParse(positionsData);
+  it("data/members.json は membersSchema を満たす", () => {
+    const result = membersSchema.safeParse(membersData);
     expect(result.success).toBe(true);
   });
 
-  it("data/candidates.json は candidatesSchema を満たす", () => {
-    const result = candidatesSchema.safeParse(candidatesData);
+  it("data/goals.json は goalsSchema を満たす", () => {
+    const result = goalsSchema.safeParse(goalsData);
     expect(result.success).toBe(true);
   });
 
@@ -28,35 +30,14 @@ describe("data/*.json schema validation", () => {
 });
 
 describe("schema rejects invalid data", () => {
-  it("departmentsSchema は配列を期待する", () => {
-    expect(departmentsSchema.safeParse({}).success).toBe(false);
-    expect(departmentsSchema.safeParse(null).success).toBe(false);
+  it("membersSchema は配列を期待する", () => {
+    expect(membersSchema.safeParse({}).success).toBe(false);
+    expect(membersSchema.safeParse(null).success).toBe(false);
   });
 
-  it("candidate は stage が StageKey でないと不可", () => {
-    expect(
-      candidatesSchema.safeParse([
-        {
-          id: "x",
-          profile: {
-            name: "x",
-            birthday: "",
-            source: "",
-            email: "",
-            phone: "",
-            address: "",
-            recruiter: "",
-            desiredSalaryMin: "",
-            desiredSalaryMax: "",
-            availableStartDate: "",
-            careerText: "",
-            motivationFull: "",
-          },
-          scorecards: [],
-          stage: "unknown-stage",
-        },
-      ]).success,
-    ).toBe(false);
+  it("member は id と name が必須", () => {
+    expect(membersSchema.safeParse([{ id: "m1" }]).success).toBe(false);
+    expect(membersSchema.safeParse([{ name: "田中" }]).success).toBe(false);
   });
 
   it("workspaceSchema は name と icon を要求する", () => {
@@ -65,49 +46,76 @@ describe("schema rejects invalid data", () => {
   });
 });
 
-describe("candidate.archived の取り扱い", () => {
-  const baseCandidate = {
-    id: "c-archived-test",
-    profile: {
-      name: "テスト 太郎",
-      birthday: "",
-      source: "",
-      email: "",
-      phone: "",
-      address: "",
-      recruiter: "",
-      desiredSalaryMin: "",
-      desiredSalaryMax: "",
-      availableStartDate: "",
-      careerText: "",
-      motivationFull: "",
-    },
-    scorecards: [],
-    stage: "screening" as const,
-  };
-
-  it("archived 未指定なら false がデフォルトで埋まる", () => {
-    const result = candidatesSchema.safeParse([baseCandidate]);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data[0].archived).toBe(false);
-    }
+describe("calcProgress", () => {
+  it("項目なしは 0 を返す", () => {
+    expect(calcProgress([])).toBe(0);
   });
 
-  it("archived: true を許容する", () => {
-    const result = candidatesSchema.safeParse([
-      { ...baseCandidate, archived: true },
-    ]);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data[0].archived).toBe(true);
-    }
+  it("全件未完了は 0 を返す", () => {
+    const items = [
+      { id: "1", label: "a", memo: "", done: false },
+      { id: "2", label: "b", memo: "", done: false },
+    ];
+    expect(calcProgress(items)).toBe(0);
   });
 
-  it("archived が boolean でなければ不可", () => {
-    const result = candidatesSchema.safeParse([
-      { ...baseCandidate, archived: "yes" },
-    ]);
-    expect(result.success).toBe(false);
+  it("全件完了は 100 を返す", () => {
+    const items = [
+      { id: "1", label: "a", memo: "", done: true },
+      { id: "2", label: "b", memo: "", done: true },
+    ];
+    expect(calcProgress(items)).toBe(100);
+  });
+
+  it("半分完了は 50 を返す", () => {
+    const items = [
+      { id: "1", label: "a", memo: "", done: true },
+      { id: "2", label: "b", memo: "", done: false },
+    ];
+    expect(calcProgress(items)).toBe(50);
+  });
+});
+
+describe("isOverdue", () => {
+  it("deadline なしは false", () => {
+    expect(
+      isOverdue({ id: "g1", memberId: "m1", title: "test", items: [] }),
+    ).toBe(false);
+  });
+
+  it("未来 deadline・未完了でも false", () => {
+    expect(
+      isOverdue({
+        id: "g1",
+        memberId: "m1",
+        title: "test",
+        deadline: "2099-12-31",
+        items: [{ id: "1", label: "a", memo: "", done: false }],
+      }),
+    ).toBe(false);
+  });
+
+  it("過去 deadline・未完了は true", () => {
+    expect(
+      isOverdue({
+        id: "g1",
+        memberId: "m1",
+        title: "test",
+        deadline: "2020-01-01",
+        items: [{ id: "1", label: "a", memo: "", done: false }],
+      }),
+    ).toBe(true);
+  });
+
+  it("過去 deadline でも完了済み（100%）なら false", () => {
+    expect(
+      isOverdue({
+        id: "g1",
+        memberId: "m1",
+        title: "test",
+        deadline: "2020-01-01",
+        items: [{ id: "1", label: "a", memo: "", done: true }],
+      }),
+    ).toBe(false);
   });
 });
