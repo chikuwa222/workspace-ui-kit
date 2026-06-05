@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 
-import { type Member } from "@/lib/goal-schema";
+import { type Goal, type Member, calcWeightedMemberProgress } from "@/lib/goal-schema";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +21,6 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
@@ -31,21 +31,26 @@ import { Pane1Toggle } from "@/components/workspace/Pane1Toggle";
 type MemberPaneProps = {
   workspaceName: string;
   members: Member[];
+  goals: Goal[];
   selectedMemberId: string | null;
   onSelectMember: (id: string) => void;
   onAddMember: (name: string) => void;
+  onEditMember: (id: string, name: string) => void;
   onDeleteMember: (id: string) => void;
 };
 
 export function MemberPane({
   workspaceName,
   members,
+  goals,
   selectedMemberId,
   onSelectMember,
   onAddMember,
+  onEditMember,
   onDeleteMember,
 }: MemberPaneProps) {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<Member | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Member | null>(null);
 
   return (
@@ -80,30 +85,54 @@ export function MemberPane({
               <SidebarMenu>
                 {members.map((member) => {
                   const active = member.id === selectedMemberId;
+                  const memberGoals = goals.filter((g) => g.memberId === member.id);
+                  const progress = calcWeightedMemberProgress(memberGoals);
                   return (
-                    <SidebarMenuItem key={member.id}>
+                    <SidebarMenuItem key={member.id} className="group/menu-item relative">
                       <SidebarMenuButton
                         tooltip={member.name}
                         isActive={active}
                         aria-current={active ? "page" : undefined}
                         onClick={() => onSelectMember(member.id)}
+                        className="h-auto py-1.5 pr-8"
                       >
-                        <span className="truncate">{member.name}</span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="truncate">{member.name}</span>
+                          <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+                            <div
+                              className="h-full rounded-full bg-primary transition-all duration-300"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] tabular-nums text-sidebar-foreground/50">
+                            進捗 {progress}%
+                          </span>
+                        </div>
                       </SidebarMenuButton>
                       <DropdownMenu>
                         <DropdownMenuTrigger
                           render={
-                            <SidebarMenuAction showOnHover>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label="操作"
+                              className="absolute top-1.5 right-1 size-5 opacity-0 group-hover/menu-item:opacity-100 aria-expanded:opacity-100 focus-visible:opacity-100"
+                            >
                               <MoreHorizontal />
-                              <span className="sr-only">操作</span>
-                            </SidebarMenuAction>
+                            </Button>
                           }
                         />
                         <DropdownMenuContent side="right" align="start">
                           <DropdownMenuGroup>
                             <DropdownMenuItem
+                              onClick={() => setEditTarget(member)}
+                            >
+                              <Pencil />
+                              名前を変更
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
                               variant="destructive"
-                              onSelect={() => setDeleteTarget(member)}
+                              onClick={() => setDeleteTarget(member)}
                             >
                               <Trash2 />
                               削除
@@ -129,6 +158,26 @@ export function MemberPane({
         fieldId="member-name"
         placeholder="例: 山田 太郎"
         onAdd={onAddMember}
+      />
+
+      <AddItemDialog
+        open={editTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditTarget(null);
+        }}
+        title="名前を変更"
+        description={`「${editTarget?.name ?? ""}」の名前を変更します`}
+        fieldLabel="新しい名前"
+        fieldId="member-name-edit"
+        placeholder="例: 山田 太郎"
+        initialValue={editTarget?.name ?? ""}
+        submitLabel="保存"
+        onAdd={(name) => {
+          if (editTarget) {
+            onEditMember(editTarget.id, name);
+            setEditTarget(null);
+          }
+        }}
       />
 
       <DeleteConfirmDialog

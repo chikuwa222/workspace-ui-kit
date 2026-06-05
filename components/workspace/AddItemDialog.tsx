@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,10 @@ type AddItemDialogProps = {
   fieldLabel: string;
   fieldId: string;
   placeholder: string;
+  /** 入力欄の初期値（編集用途で使用）。省略時は空文字。 */
+  initialValue?: string;
+  /** 送信ボタンのラベル。省略時は「追加」。 */
+  submitLabel?: string;
   onAdd: (name: string) => void;
 };
 
@@ -34,9 +38,15 @@ export function AddItemDialog({
   fieldLabel,
   fieldId,
   placeholder,
+  initialValue = "",
+  submitLabel = "追加",
   onAdd,
 }: AddItemDialogProps) {
-  const [name, setName] = useState("");
+  const [name, setName] = useState(initialValue);
+
+  useEffect(() => {
+    if (open) setName(initialValue);
+  }, [open, initialValue]);
 
   const handleSubmit = () => {
     const trimmed = name.trim();
@@ -77,7 +87,7 @@ export function AddItemDialog({
         <DialogFooter>
           <DialogClose render={<Button variant="outline">キャンセル</Button>} />
           <Button onClick={handleSubmit} disabled={!name.trim()}>
-            追加
+            {submitLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { CalendarMinus2, MessageSquare, Plus, Trash2 } from "lucide-react";
 
 import { type ChecklistItem, type Evaluation, type Goal } from "@/lib/goal-schema";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
@@ -18,7 +17,6 @@ import {
 } from "@/components/ui/tooltip";
 import {
   InlineDateField,
-  InlineFieldRow,
   InlineTextareaField,
   InlineTextField,
   SectionLabel,
@@ -27,12 +25,16 @@ import { EvaluationPopover } from "@/components/workspace/EvaluationPopover";
 
 type GoalDetailPaneProps = {
   goal: Goal | null;
-  onUpdateGoal: (patch: Partial<Pick<Goal, "title" | "deadline">>) => void;
+  onUpdateGoal: (patch: Partial<Pick<Goal, "title" | "weight">>) => void;
   onToggleItem: (itemId: string) => void;
   onAddItem: (label: string) => void;
   onDeleteItem: (itemId: string) => void;
-  onUpdateItem: (itemId: string, patch: Partial<Pick<ChecklistItem, "label" | "memo">>) => void;
+  onUpdateItem: (
+    itemId: string,
+    patch: Partial<Pick<ChecklistItem, "label" | "memo" | "deadline">>,
+  ) => void;
   onAddEvaluation: (itemId: string, ev: Omit<Evaluation, "id">) => void;
+  onDeleteEvaluation: (itemId: string, evalId: string) => void;
 };
 
 export function GoalDetailPane({
@@ -43,6 +45,7 @@ export function GoalDetailPane({
   onDeleteItem,
   onUpdateItem,
   onAddEvaluation,
+  onDeleteEvaluation,
 }: GoalDetailPaneProps) {
   const [newItemLabel, setNewItemLabel] = useState("");
 
@@ -64,45 +67,47 @@ export function GoalDetailPane({
   }
 
   return (
-    <div className="flex flex-1 flex-col bg-background">
-      <ScrollArea className="flex-1">
-        <div className="flex flex-col gap-6 p-6">
-          {/* 目標情報 */}
-          <section className="flex flex-col gap-4">
-            <SectionLabel>目標</SectionLabel>
-            <dl className="flex flex-col gap-3 text-sm">
-              <InlineFieldRow label="目標名">
-                <InlineTextField
-                  key={goal.id}
-                  value={goal.title}
-                  onSave={(v) => onUpdateGoal({ title: v })}
-                  ariaLabel="目標名"
-                  placeholder="目標名を入力"
-                />
-              </InlineFieldRow>
-              <InlineFieldRow label="期限">
-                <InlineDateField
-                  key={goal.id}
-                  value={goal.deadline ?? ""}
-                  onSave={(v) => onUpdateGoal({ deadline: v || undefined })}
-                  ariaLabel="期限"
-                />
-              </InlineFieldRow>
-            </dl>
-          </section>
+    <div className="flex flex-1 min-h-0 flex-col bg-background">
+      <ScrollArea className="flex-1 overflow-hidden">
+        <div className="flex flex-col gap-3 p-4">
+          {/* 目標情報（1行コンパクト） */}
+          <div className="flex items-end gap-3">
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <span className="text-xs text-muted-foreground">目標名</span>
+              <InlineTextField
+                key={goal.id}
+                value={goal.title}
+                onSave={(v) => onUpdateGoal({ title: v })}
+                ariaLabel="目標名"
+                placeholder="目標名を入力"
+              />
+            </div>
+            <div className="flex w-24 shrink-0 flex-col gap-1">
+              <span className="text-xs text-muted-foreground">ウェイト%</span>
+              <InlineTextField
+                key={`${goal.id}-weight`}
+                value={String(goal.weight ?? 0)}
+                onSave={(v) => {
+                  const n = parseInt(v, 10);
+                  if (!isNaN(n)) onUpdateGoal({ weight: Math.min(100, Math.max(0, n)) });
+                }}
+                inputType="number"
+                ariaLabel="ウェイト%"
+                placeholder="0"
+              />
+            </div>
+          </div>
 
-          <Separator />
-
-          {/* チェックリスト */}
-          <section className="flex flex-col gap-4">
-            <SectionLabel>チェックリスト</SectionLabel>
+          {/* サブタスク */}
+          <section className="flex flex-col gap-3">
+            <SectionLabel>サブタスク</SectionLabel>
 
             {goal.items.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 サブタスクがありません。下の入力欄から追加してください。
               </p>
             ) : (
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
                 {goal.items.map((item) => (
                   <ChecklistItemRow
                     key={item.id}
@@ -111,7 +116,13 @@ export function GoalDetailPane({
                     onDelete={() => onDeleteItem(item.id)}
                     onUpdateLabel={(label) => onUpdateItem(item.id, { label })}
                     onUpdateMemo={(memo) => onUpdateItem(item.id, { memo })}
+                    onUpdateDeadline={(deadline) =>
+                      onUpdateItem(item.id, { deadline: deadline || undefined })
+                    }
                     onAddEvaluation={(ev) => onAddEvaluation(item.id, ev)}
+                    onDeleteEvaluation={(evalId) =>
+                      onDeleteEvaluation(item.id, evalId)
+                    }
                   />
                 ))}
               </div>
@@ -155,7 +166,9 @@ type ChecklistItemRowProps = {
   onDelete: () => void;
   onUpdateLabel: (label: string) => void;
   onUpdateMemo: (memo: string) => void;
+  onUpdateDeadline: (deadline: string) => void;
   onAddEvaluation: (ev: Omit<Evaluation, "id">) => void;
+  onDeleteEvaluation: (evalId: string) => void;
 };
 
 function ChecklistItemRow({
@@ -164,8 +177,13 @@ function ChecklistItemRow({
   onDelete,
   onUpdateLabel,
   onUpdateMemo,
+  onUpdateDeadline,
   onAddEvaluation,
+  onDeleteEvaluation,
 }: ChecklistItemRowProps) {
+  const [deadlineVisible, setDeadlineVisible] = useState(!!item.deadline);
+  const [memoVisible, setMemoVisible] = useState(!!item.memo);
+
   const totalScore = item.evaluations.reduce((sum, e) => sum + e.score, 0);
   const hasEvaluations = item.evaluations.length > 0;
 
@@ -198,17 +216,27 @@ function ChecklistItemRow({
                     {totalScore > 0 ? `+${totalScore}` : totalScore}
                   </Badge>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-64 flex flex-col gap-1 text-left">
+                <TooltipContent side="top" className="max-w-72 flex flex-col gap-2 text-left p-3">
                   {item.evaluations.map((ev) => (
-                    <div key={ev.id} className="flex flex-col gap-0.5">
-                      <span className="font-medium">
-                        [{ev.category}] {ev.score > 0 ? `+${ev.score}` : ev.score}
-                      </span>
-                      <span className="opacity-80">{ev.item}</span>
-                      {ev.comment && (
-                        <span className="opacity-70">{ev.comment}</span>
-                      )}
-                      <span className="opacity-50 text-[10px]">{ev.date}</span>
+                    <div key={ev.id} className="flex items-start gap-2">
+                      <div className="flex flex-1 flex-col gap-0.5">
+                        <span className="font-medium">
+                          [{ev.category}] {ev.score > 0 ? `+${ev.score}` : ev.score}
+                        </span>
+                        <span className="opacity-80">{ev.item}</span>
+                        {ev.comment && (
+                          <span className="opacity-70">{ev.comment}</span>
+                        )}
+                        <span className="opacity-50 text-[10px]">{ev.date}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onDeleteEvaluation(ev.id)}
+                        aria-label="評価を削除"
+                        className="mt-0.5 shrink-0 rounded p-0.5 opacity-60 hover:opacity-100 hover:text-destructive"
+                      >
+                        <Trash2 className="size-3" />
+                      </button>
                     </div>
                   ))}
                 </TooltipContent>
@@ -216,13 +244,50 @@ function ChecklistItemRow({
             </TooltipProvider>
           )}
         </div>
-        <InlineTextareaField
-          key={`${item.id}-memo`}
-          value={item.memo}
-          onSave={onUpdateMemo}
-          ariaLabel="メモ"
-          placeholder="メモを追加..."
-        />
+
+        {/* タスク期限 */}
+        {(deadlineVisible || item.deadline) ? (
+          <div className="flex items-center gap-1.5">
+            <CalendarMinus2 className="size-3.5 shrink-0 text-muted-foreground" />
+            <div className="w-40">
+              <InlineDateField
+                key={`${item.id}-deadline`}
+                value={item.deadline ?? ""}
+                onSave={onUpdateDeadline}
+                ariaLabel="タスク期限"
+              />
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setDeadlineVisible(true)}
+            className="flex w-fit items-center gap-1 text-xs text-muted-foreground/0 transition-opacity group-hover:text-muted-foreground/60 hover:!text-muted-foreground"
+          >
+            <CalendarMinus2 className="size-3" />
+            期限を追加
+          </button>
+        )}
+
+        {/* メモ */}
+        {(memoVisible || item.memo) ? (
+          <InlineTextareaField
+            key={`${item.id}-memo`}
+            value={item.memo}
+            onSave={onUpdateMemo}
+            ariaLabel="メモ"
+            placeholder="メモを追加..."
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setMemoVisible(true)}
+            className="flex w-fit items-center gap-1 text-xs text-muted-foreground/0 transition-opacity group-hover:text-muted-foreground/60 hover:!text-muted-foreground"
+          >
+            <MessageSquare className="size-3" />
+            メモを追加
+          </button>
+        )}
       </div>
 
       {/* アクションボタン群（ホバーで表示） */}

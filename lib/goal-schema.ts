@@ -9,7 +9,14 @@ import { z } from "zod";
 
 export const evaluationSchema = z.object({
   id: z.string(),
-  score: z.number(),          // -5 / -3 / -1 / +1 / +3 / +5
+  score: z.union([
+    z.literal(-3),
+    z.literal(-2),
+    z.literal(-1),
+    z.literal(1),
+    z.literal(2),
+    z.literal(3),
+  ]),
   category: z.string(),       // マスターデータのカテゴリ名
   item: z.string(),           // マスターデータの評価項目名
   comment: z.string().default(""),
@@ -24,6 +31,8 @@ export const checklistItemSchema = z.object({
   label: z.string(),
   memo: z.string().default(""),
   done: z.boolean().default(false),
+  /** ISO 8601 (YYYY-MM-DD)。省略可。 */
+  deadline: z.string().optional(),
   evaluations: z.array(evaluationSchema).default([]),
 });
 export type ChecklistItem = z.infer<typeof checklistItemSchema>;
@@ -34,8 +43,8 @@ export const goalSchema = z.object({
   id: z.string(),
   memberId: z.string(),
   title: z.string(),
-  /** ISO 8601 (YYYY-MM-DD)。省略可。 */
-  deadline: z.string().optional(),
+  /** ウェイト（0〜100）。0 のとき単純平均にフォールバック。 */
+  weight: z.number().min(0).max(100).default(0),
   items: z.array(checklistItemSchema),
 });
 export type Goal = z.infer<typeof goalSchema>;
@@ -71,11 +80,37 @@ export function calcBehaviorScore(items: ChecklistItem[]): number {
 }
 
 /**
- * 期限超過かどうかを判定する。
- * 条件: deadline が今日より前 かつ 進捗率が 100% 未満。
+ * メンバーの全目標を集約し加重平均進捗率を返す。
+ * 全 weight が 0 のときは単純平均にフォールバック。
+ */
+export function calcWeightedMemberProgress(goals: Goal[]): number {
+  if (goals.length === 0) return 0;
+  const totalWeight = goals.reduce((s, g) => s + g.weight, 0);
+  if (totalWeight === 0) {
+    return Math.round(
+      goals.reduce((s, g) => s + calcProgress(g.items), 0) / goals.length,
+    );
+  }
+  return Math.round(
+    goals.reduce((s, g) => s + g.weight * calcProgress(g.items), 0) /
+      totalWeight,
+  );
+}
+
+/**
+ * タスク単位の期限超過判定。
+ * 条件: item.deadline が今日より前 かつ 未完了。
+ */
+export function isItemOverdue(item: ChecklistItem): boolean {
+  if (!item.deadline) return false;
+  const today = new Date().toISOString().slice(0, 10);
+  return item.deadline < today && !item.done;
+}
+
+/**
+ * 目標単位の期限超過判定（後方互換維持）。
+ * いずれかのタスクが期限超過していれば true。
  */
 export function isOverdue(goal: Goal): boolean {
-  if (!goal.deadline) return false;
-  const today = new Date().toISOString().slice(0, 10);
-  return goal.deadline < today && calcProgress(goal.items) < 100;
+  return goal.items.some(isItemOverdue);
 }

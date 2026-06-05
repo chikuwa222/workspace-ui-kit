@@ -7,7 +7,7 @@
  *   Pane 1 (MemberPane)    — メンバー一覧サイドバー（折りたたみ可）
  *   Pane 2 (GoalListPane)  — 選択メンバーの目標一覧（進捗バー付き）
  *   Pane 3 (GoalDetailPane)— 選択目標の詳細（インライン編集 + チェックリスト）
- *   Pane 4 (SummaryPane)   — 全体サマリー（全メンバー達成率・遅延アラート）
+ *   Pane 4 (SummaryPane)   — 全メンバー × 行動評価項目の合計点数テーブル
  *
  * レイアウト（Workspace.tsx を SSoT とする）:
  * ```
@@ -16,7 +16,7 @@
  * │ 折りたたみ可           │ ┌─ GlobalHeader (h-12) ─────────────────┐ │
  * │ collapsible="icon"     │ └──────────────────────────────────────── ┘ │
  * │                        │ ┌─ Pane 2 ─┬─────── Pane 3 ─────────┬ Pane 4 ┐ │
- * │                        │ │ w-72     │   flex-1               │  w-72  │ │
+ * │                        │ │ w-72     │   flex-1               │ w-480  │ │
  * └───────────────────────┴─┴──────────┴─────────────────────────┴────────┘
  * ```
  */
@@ -79,6 +79,16 @@ export function Workspace({
     [setGoalState],
   );
 
+  const editMember = useCallback(
+    (id: string, name: string) => {
+      setGoalState((s) => ({
+        ...s,
+        members: s.members.map((m) => (m.id === id ? { ...m, name } : m)),
+      }));
+    },
+    [setGoalState],
+  );
+
   const deleteMember = useCallback(
     (id: string) => {
       setGoalState((s) => ({
@@ -113,6 +123,7 @@ export function Workspace({
         id: `g-${Date.now()}`,
         memberId,
         title,
+        weight: 0,
         items: [],
       };
       setGoalState((s) => ({ ...s, goals: [...s.goals, newGoal] }));
@@ -130,7 +141,7 @@ export function Workspace({
   );
 
   const updateGoal = useCallback(
-    (goalId: string, patch: Partial<Pick<Goal, "title" | "deadline">>) => {
+    (goalId: string, patch: Partial<Pick<Goal, "title" | "weight">>) => {
       setGoalState((s) => ({
         ...s,
         goals: s.goals.map((g) =>
@@ -199,7 +210,7 @@ export function Workspace({
     (
       goalId: string,
       itemId: string,
-      patch: Partial<Pick<ChecklistItem, "label" | "memo">>,
+      patch: Partial<Pick<ChecklistItem, "label" | "memo" | "deadline">>,
     ) => {
       setGoalState((s) => ({
         ...s,
@@ -236,6 +247,23 @@ export function Workspace({
     [setGoalState],
   );
 
+  const deleteEvaluation = useCallback(
+    (itemId: string, evalId: string) => {
+      setGoalState((s) => ({
+        ...s,
+        goals: s.goals.map((g) => ({
+          ...g,
+          items: g.items.map((i) =>
+            i.id === itemId
+              ? { ...i, evaluations: i.evaluations.filter((e) => e.id !== evalId) }
+              : i,
+          ),
+        })),
+      }));
+    },
+    [setGoalState],
+  );
+
   const togglePane4 = useCallback(() => setPane4Open((v) => !v), []);
 
   return (
@@ -246,9 +274,11 @@ export function Workspace({
       <MemberPane
         workspaceName={workspace.name}
         members={members}
+        goals={goals}
         selectedMemberId={selectedMemberId}
         onSelectMember={selectMember}
         onAddMember={addMember}
+        onEditMember={editMember}
         onDeleteMember={deleteMember}
       />
       <SidebarInset className="flex min-w-0 flex-col bg-background">
@@ -286,6 +316,7 @@ export function Workspace({
               if (selectedGoal) updateItem(selectedGoal.id, itemId, patch);
             }}
             onAddEvaluation={addEvaluation}
+            onDeleteEvaluation={deleteEvaluation}
           />
           <SummaryPane
             members={members}

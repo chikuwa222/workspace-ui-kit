@@ -40,7 +40,7 @@ export function GoalListPane({
 
   return (
     <>
-      <div className="flex w-72 shrink-0 flex-col border-r border-border bg-sidebar">
+      <div className="flex w-72 min-h-0 shrink-0 flex-col border-r border-border bg-sidebar">
         {/* ヘッダー */}
         <div className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border px-3">
           <h2 className="min-w-0 truncate text-sm font-semibold text-foreground">
@@ -60,7 +60,7 @@ export function GoalListPane({
         </div>
 
         {/* 目標一覧 */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 overflow-hidden">
           {!member ? (
             <p className="px-4 py-8 text-center text-sm text-muted-foreground">
               左のサイドバーから
@@ -114,7 +114,7 @@ export function GoalListPane({
                           <DropdownMenuGroup>
                             <DropdownMenuItem
                               variant="destructive"
-                              onSelect={(e) => {
+                              onClick={(e) => {
                                 e.stopPropagation();
                                 setDeleteTarget(goal);
                               }}
@@ -162,10 +162,10 @@ export function GoalListPane({
                       </div>
                     </div>
 
-                    {/* 期限 */}
-                    {goal.deadline && (
+                    {/* ウェイト */}
+                    {goal.weight > 0 && (
                       <span className="text-xs text-muted-foreground">
-                        期限: {goal.deadline}
+                        ウェイト: {goal.weight}%
                       </span>
                     )}
                   </div>

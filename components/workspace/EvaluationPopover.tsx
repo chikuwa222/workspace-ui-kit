@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Star } from "lucide-react";
+import { PenLine } from "lucide-react";
 
 import { type Evaluation } from "@/lib/goal-schema";
 import { EVALUATION_MASTER, groupedEvaluationMaster } from "@/lib/evaluation-master";
@@ -27,7 +27,7 @@ type EvaluationPopoverProps = {
   onSave: (ev: Omit<Evaluation, "id">) => void;
 };
 
-const SCORE_PRESETS = [-5, -3, -1, 1, 3, 5] as const;
+const SCORE_PRESETS = [-3, -2, -1, 1, 2, 3] as const;
 
 const GROUPED_MASTER = groupedEvaluationMaster();
 
@@ -64,7 +64,7 @@ export function EvaluationPopover({ onSave }: EvaluationPopoverProps) {
             size="icon-sm"
             aria-label="行動評価を追加"
           >
-            <Star />
+            <PenLine />
           </Button>
         }
       />

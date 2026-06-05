@@ -3,97 +3,97 @@
     "id": "g1",
     "memberId": "m1",
     "title": "新規顧客10社の獲得",
-    "deadline": "2026-09-30",
+    "weight": 60,
     "items": [
-      { "id": "g1i1", "label": "ターゲット業界リストアップ", "memo": "製造業・物流業を優先", "done": true },
-      { "id": "g1i2", "label": "初回提案書テンプレート作成", "memo": "", "done": true },
-      { "id": "g1i3", "label": "アポイント10件取得", "memo": "Q2中に完了予定", "done": false },
-      { "id": "g1i4", "label": "商談クロージング10件", "memo": "", "done": false }
+      { "id": "g1i1", "label": "ターゲット業界リストアップ", "memo": "製造業・物流業を優先", "done": true, "deadline": "2026-04-30" },
+      { "id": "g1i2", "label": "初回提案書テンプレート作成", "memo": "", "done": true, "deadline": "2026-05-31" },
+      { "id": "g1i3", "label": "アポイント10件取得", "memo": "Q2中に完了予定", "done": false, "deadline": "2026-07-31" },
+      { "id": "g1i4", "label": "商談クロージング10件", "memo": "", "done": false, "deadline": "2026-09-30" }
     ]
   },
   {
     "id": "g2",
     "memberId": "m1",
     "title": "チームの業務効率20%改善",
-    "deadline": "2026-04-30",
+    "weight": 40,
     "items": [
-      { "id": "g2i1", "label": "現状の業務フロー分析", "memo": "", "done": true },
-      { "id": "g2i2", "label": "ボトルネック特定・優先順位付け", "memo": "", "done": false },
-      { "id": "g2i3", "label": "改善施策の立案と承認取得", "memo": "", "done": false },
-      { "id": "g2i4", "label": "施策実施・効果測定レポート作成", "memo": "", "done": false }
+      { "id": "g2i1", "label": "現状の業務フロー分析", "memo": "", "done": true, "deadline": "2026-03-31" },
+      { "id": "g2i2", "label": "ボトルネック特定・優先順位付け", "memo": "", "done": false, "deadline": "2026-05-31" },
+      { "id": "g2i3", "label": "改善施策の立案と承認取得", "memo": "", "done": false, "deadline": "2026-07-31" },
+      { "id": "g2i4", "label": "施策実施・効果測定レポート作成", "memo": "", "done": false, "deadline": "2026-09-30" }
     ]
   },
   {
     "id": "g3",
     "memberId": "m2",
     "title": "新機能リリース3件達成",
-    "deadline": "2026-12-31",
+    "weight": 70,
     "items": [
-      { "id": "g3i1", "label": "機能①：要件定義・仕様書作成", "memo": "", "done": true },
-      { "id": "g3i2", "label": "機能①：実装・テスト・リリース", "memo": "5月上旬リリース完了", "done": true },
-      { "id": "g3i3", "label": "機能②：要件定義・仕様書作成", "memo": "", "done": true },
-      { "id": "g3i4", "label": "機能②：実装・テスト・リリース", "memo": "", "done": false },
-      { "id": "g3i5", "label": "機能③：要件定義〜リリース", "memo": "", "done": false }
+      { "id": "g3i1", "label": "機能①：要件定義・仕様書作成", "memo": "", "done": true, "deadline": "2026-03-31" },
+      { "id": "g3i2", "label": "機能①：実装・テスト・リリース", "memo": "5月上旬リリース完了", "done": true, "deadline": "2026-05-15" },
+      { "id": "g3i3", "label": "機能②：要件定義・仕様書作成", "memo": "", "done": true, "deadline": "2026-07-31" },
+      { "id": "g3i4", "label": "機能②：実装・テスト・リリース", "memo": "", "done": false, "deadline": "2026-09-30" },
+      { "id": "g3i5", "label": "機能③：要件定義〜リリース", "memo": "", "done": false, "deadline": "2026-12-31" }
     ]
   },
   {
     "id": "g4",
     "memberId": "m2",
     "title": "ユーザー満足度スコア80点達成",
-    "deadline": "2026-03-31",
+    "weight": 30,
     "items": [
-      { "id": "g4i1", "label": "現状スコア調査・ベースライン設定", "memo": "現在62点", "done": true },
-      { "id": "g4i2", "label": "改善施策10件の洗い出し", "memo": "", "done": false },
-      { "id": "g4i3", "label": "施策実施（優先度上位5件）", "memo": "", "done": false },
-      { "id": "g4i4", "label": "再調査・スコア評価", "memo": "", "done": false }
+      { "id": "g4i1", "label": "現状スコア調査・ベースライン設定", "memo": "現在62点", "done": true, "deadline": "2026-02-28" },
+      { "id": "g4i2", "label": "改善施策10件の洗い出し", "memo": "", "done": false, "deadline": "2026-05-31" },
+      { "id": "g4i3", "label": "施策実施（優先度上位5件）", "memo": "", "done": false, "deadline": "2026-09-30" },
+      { "id": "g4i4", "label": "再調査・スコア評価", "memo": "", "done": false, "deadline": "2026-12-31" }
     ]
   },
   {
     "id": "g5",
     "memberId": "m3",
     "title": "資格取得（プロジェクトマネージャー試験）",
-    "deadline": "2026-10-31",
+    "weight": 50,
     "items": [
-      { "id": "g5i1", "label": "試験範囲の教材購入・学習計画策定", "memo": "参考書3冊購入済み", "done": true },
-      { "id": "g5i2", "label": "午前試験対策（過去問3年分）", "memo": "", "done": true },
-      { "id": "g5i3", "label": "午後試験対策（論述練習5本）", "memo": "", "done": false },
-      { "id": "g5i4", "label": "模擬試験受験・弱点克服", "memo": "", "done": false },
-      { "id": "g5i5", "label": "本試験受験", "memo": "", "done": false }
+      { "id": "g5i1", "label": "試験範囲の教材購入・学習計画策定", "memo": "参考書3冊購入済み", "done": true, "deadline": "2026-03-31" },
+      { "id": "g5i2", "label": "午前試験対策（過去問3年分）", "memo": "", "done": true, "deadline": "2026-06-30" },
+      { "id": "g5i3", "label": "午後試験対策（論述練習5本）", "memo": "", "done": false, "deadline": "2026-08-31" },
+      { "id": "g5i4", "label": "模擬試験受験・弱点克服", "memo": "", "done": false, "deadline": "2026-09-30" },
+      { "id": "g5i5", "label": "本試験受験", "memo": "", "done": false, "deadline": "2026-10-31" }
     ]
   },
   {
     "id": "g6",
     "memberId": "m3",
     "title": "部門横断プロジェクトのリード",
-    "deadline": "2027-03-31",
+    "weight": 50,
     "items": [
-      { "id": "g6i1", "label": "プロジェクト憲章の作成・承認", "memo": "", "done": true },
-      { "id": "g6i2", "label": "ステークホルダー調整・キックオフ", "memo": "", "done": false },
-      { "id": "g6i3", "label": "中間レビュー・進捗報告", "memo": "", "done": false },
-      { "id": "g6i4", "label": "最終成果物の納品・振り返り", "memo": "", "done": false }
+      { "id": "g6i1", "label": "プロジェクト憲章の作成・承認", "memo": "", "done": true, "deadline": "2026-04-30" },
+      { "id": "g6i2", "label": "ステークホルダー調整・キックオフ", "memo": "", "done": false, "deadline": "2026-07-31" },
+      { "id": "g6i3", "label": "中間レビュー・進捗報告", "memo": "", "done": false, "deadline": "2026-12-31" },
+      { "id": "g6i4", "label": "最終成果物の納品・振り返り", "memo": "", "done": false, "deadline": "2027-03-31" }
     ]
   },
   {
     "id": "g7",
     "memberId": "m4",
     "title": "SNS フォロワー5,000人達成",
-    "deadline": "2026-08-31",
+    "weight": 60,
     "items": [
-      { "id": "g7i1", "label": "投稿カレンダー作成（3ヶ月分）", "memo": "", "done": true },
-      { "id": "g7i2", "label": "週3回投稿の継続（4月〜6月）", "memo": "現在4,120人", "done": false },
-      { "id": "g7i3", "label": "コラボ企画2件実施", "memo": "", "done": false },
-      { "id": "g7i4", "label": "5,000人達成・分析レポート作成", "memo": "", "done": false }
+      { "id": "g7i1", "label": "投稿カレンダー作成（3ヶ月分）", "memo": "", "done": true, "deadline": "2026-04-15" },
+      { "id": "g7i2", "label": "週3回投稿の継続（4月〜6月）", "memo": "現在4,120人", "done": false, "deadline": "2026-06-30" },
+      { "id": "g7i3", "label": "コラボ企画2件実施", "memo": "", "done": false, "deadline": "2026-07-31" },
+      { "id": "g7i4", "label": "5,000人達成・分析レポート作成", "memo": "", "done": false, "deadline": "2026-08-31" }
     ]
   },
   {
     "id": "g8",
     "memberId": "m4",
     "title": "英語ビジネス会話レベルアップ",
-    "deadline": "2026-03-31",
+    "weight": 40,
     "items": [
-      { "id": "g8i1", "label": "英会話スクール申込・スタート", "memo": "", "done": true },
-      { "id": "g8i2", "label": "TOEIC 800点取得", "memo": "", "done": false },
-      { "id": "g8i3", "label": "英語でのプレゼン実施（社内1回）", "memo": "", "done": false }
+      { "id": "g8i1", "label": "英会話スクール申込・スタート", "memo": "", "done": true, "deadline": "2026-01-31" },
+      { "id": "g8i2", "label": "TOEIC 800点取得", "memo": "", "done": false, "deadline": "2026-07-31" },
+      { "id": "g8i3", "label": "英語でのプレゼン実施（社内1回）", "memo": "", "done": false, "deadline": "2026-12-31" }
     ]
   }
 ]
