@@ -41,16 +41,19 @@ type WorkspaceProps = {
   initialMembers: Member[];
   initialGoals: Goal[];
   workspace: { name: string; icon: string };
+  activePeriod: string;
 };
 
 export function Workspace({
   initialMembers,
   initialGoals,
   workspace,
+  activePeriod,
 }: WorkspaceProps) {
   const [{ members, goals }, setGoalState] = useGoalStorage(
     initialMembers,
     initialGoals,
+    activePeriod,
   );
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(
     initialMembers[0]?.id ?? null,
@@ -123,7 +126,6 @@ export function Workspace({
         id: `g-${Date.now()}`,
         memberId,
         title,
-        weight: 0,
         items: [],
       };
       setGoalState((s) => ({ ...s, goals: [...s.goals, newGoal] }));
@@ -141,7 +143,7 @@ export function Workspace({
   );
 
   const updateGoal = useCallback(
-    (goalId: string, patch: Partial<Pick<Goal, "title" | "weight">>) => {
+    (goalId: string, patch: Partial<Pick<Goal, "title" | "deadline">>) => {
       setGoalState((s) => ({
         ...s,
         goals: s.goals.map((g) =>
@@ -210,7 +212,7 @@ export function Workspace({
     (
       goalId: string,
       itemId: string,
-      patch: Partial<Pick<ChecklistItem, "label" | "memo" | "deadline">>,
+      patch: Partial<Pick<ChecklistItem, "label" | "memo">>,
     ) => {
       setGoalState((s) => ({
         ...s,

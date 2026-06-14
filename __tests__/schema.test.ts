@@ -6,7 +6,6 @@ import {
   workspaceSchema,
   calcProgress,
   isOverdue,
-  isItemOverdue,
 } from "@/lib/goal-schema";
 
 import membersData from "@/data/members.json";
@@ -77,100 +76,58 @@ describe("calcProgress", () => {
   });
 });
 
-describe("isItemOverdue", () => {
+describe("isOverdue（目標単位）", () => {
   it("deadline なしは false", () => {
     expect(
-      isItemOverdue({ id: "i1", label: "a", memo: "", done: false, evaluations: [] }),
+      isOverdue({ id: "g1", memberId: "m1", title: "test", items: [] }),
     ).toBe(false);
   });
 
   it("未来 deadline・未完了でも false", () => {
     expect(
-      isItemOverdue({
-        id: "i1",
-        label: "a",
-        memo: "",
-        done: false,
+      isOverdue({
+        id: "g1",
+        memberId: "m1",
+        title: "test",
         deadline: "2099-12-31",
-        evaluations: [],
+        items: [{ id: "i1", label: "a", memo: "", done: false, evaluations: [] }],
       }),
     ).toBe(false);
   });
 
   it("過去 deadline・未完了は true", () => {
     expect(
-      isItemOverdue({
-        id: "i1",
-        label: "a",
-        memo: "",
-        done: false,
+      isOverdue({
+        id: "g1",
+        memberId: "m1",
+        title: "test",
         deadline: "2020-01-01",
-        evaluations: [],
+        items: [{ id: "i1", label: "a", memo: "", done: false, evaluations: [] }],
       }),
     ).toBe(true);
   });
 
-  it("過去 deadline でも完了済みなら false", () => {
+  it("過去 deadline でもサブタスク全完了なら false", () => {
     expect(
-      isItemOverdue({
-        id: "i1",
-        label: "a",
-        memo: "",
-        done: true,
+      isOverdue({
+        id: "g1",
+        memberId: "m1",
+        title: "test",
         deadline: "2020-01-01",
-        evaluations: [],
+        items: [{ id: "i1", label: "a", memo: "", done: true, evaluations: [] }],
       }),
     ).toBe(false);
   });
-});
 
-describe("isOverdue（目標単位）", () => {
-  it("タスクなしは false", () => {
-    expect(
-      isOverdue({ id: "g1", memberId: "m1", title: "test", weight: 0, items: [] }),
-    ).toBe(false);
-  });
-
-  it("全タスクの deadline が未来なら false", () => {
+  it("サブタスクなし・過去 deadline は true（進捗 0% のため）", () => {
     expect(
       isOverdue({
         id: "g1",
         memberId: "m1",
         title: "test",
-        weight: 0,
-        items: [
-          { id: "i1", label: "a", memo: "", done: false, deadline: "2099-12-31", evaluations: [] },
-        ],
-      }),
-    ).toBe(false);
-  });
-
-  it("いずれかのタスクが過去 deadline・未完了なら true", () => {
-    expect(
-      isOverdue({
-        id: "g1",
-        memberId: "m1",
-        title: "test",
-        weight: 0,
-        items: [
-          { id: "i1", label: "a", memo: "", done: true, deadline: "2020-01-01", evaluations: [] },
-          { id: "i2", label: "b", memo: "", done: false, deadline: "2020-01-01", evaluations: [] },
-        ],
+        deadline: "2020-01-01",
+        items: [],
       }),
     ).toBe(true);
-  });
-
-  it("全タスクが完了済みなら false", () => {
-    expect(
-      isOverdue({
-        id: "g1",
-        memberId: "m1",
-        title: "test",
-        weight: 0,
-        items: [
-          { id: "i1", label: "a", memo: "", done: true, deadline: "2020-01-01", evaluations: [] },
-        ],
-      }),
-    ).toBe(false);
   });
 });

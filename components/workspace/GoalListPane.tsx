@@ -162,12 +162,6 @@ export function GoalListPane({
                       </div>
                     </div>
 
-                    {/* ウェイト */}
-                    {goal.weight > 0 && (
-                      <span className="text-xs text-muted-foreground">
-                        ウェイト: {goal.weight}%
-                      </span>
-                    )}
                   </div>
                 );
               })}

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CalendarMinus2, MessageSquare, Plus, Trash2 } from "lucide-react";
 
-import { type ChecklistItem, type Evaluation, type Goal } from "@/lib/goal-schema";
+import { type ChecklistItem, type Evaluation, type Goal, isOverdue } from "@/lib/goal-schema";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,13 +25,13 @@ import { EvaluationPopover } from "@/components/workspace/EvaluationPopover";
 
 type GoalDetailPaneProps = {
   goal: Goal | null;
-  onUpdateGoal: (patch: Partial<Pick<Goal, "title" | "weight">>) => void;
+  onUpdateGoal: (patch: Partial<Pick<Goal, "title" | "deadline">>) => void;
   onToggleItem: (itemId: string) => void;
   onAddItem: (label: string) => void;
   onDeleteItem: (itemId: string) => void;
   onUpdateItem: (
     itemId: string,
-    patch: Partial<Pick<ChecklistItem, "label" | "memo" | "deadline">>,
+    patch: Partial<Pick<ChecklistItem, "label" | "memo">>,
   ) => void;
   onAddEvaluation: (itemId: string, ev: Omit<Evaluation, "id">) => void;
   onDeleteEvaluation: (itemId: string, evalId: string) => void;
@@ -70,9 +70,9 @@ export function GoalDetailPane({
     <div className="flex flex-1 min-h-0 flex-col bg-background">
       <ScrollArea className="flex-1 overflow-hidden">
         <div className="flex flex-col gap-3 p-4">
-          {/* 目標情報（1行コンパクト） */}
-          <div className="flex items-end gap-3">
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
+          {/* 目標情報 */}
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">目標名</span>
               <InlineTextField
                 key={goal.id}
@@ -82,19 +82,22 @@ export function GoalDetailPane({
                 placeholder="目標名を入力"
               />
             </div>
-            <div className="flex w-24 shrink-0 flex-col gap-1">
-              <span className="text-xs text-muted-foreground">ウェイト%</span>
-              <InlineTextField
-                key={`${goal.id}-weight`}
-                value={String(goal.weight ?? 0)}
-                onSave={(v) => {
-                  const n = parseInt(v, 10);
-                  if (!isNaN(n)) onUpdateGoal({ weight: Math.min(100, Math.max(0, n)) });
-                }}
-                inputType="number"
-                ariaLabel="ウェイト%"
-                placeholder="0"
-              />
+            <div className="flex items-center gap-1.5">
+              <CalendarMinus2 className="size-3.5 shrink-0 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground shrink-0">期限</span>
+              <div className="w-40">
+                <InlineDateField
+                  key={`${goal.id}-deadline`}
+                  value={goal.deadline ?? ""}
+                  onSave={(v) => onUpdateGoal({ deadline: v || undefined })}
+                  ariaLabel="目標期限"
+                />
+              </div>
+              {isOverdue(goal) && (
+                <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">
+                  期限超過
+                </Badge>
+              )}
             </div>
           </div>
 
@@ -116,9 +119,6 @@ export function GoalDetailPane({
                     onDelete={() => onDeleteItem(item.id)}
                     onUpdateLabel={(label) => onUpdateItem(item.id, { label })}
                     onUpdateMemo={(memo) => onUpdateItem(item.id, { memo })}
-                    onUpdateDeadline={(deadline) =>
-                      onUpdateItem(item.id, { deadline: deadline || undefined })
-                    }
                     onAddEvaluation={(ev) => onAddEvaluation(item.id, ev)}
                     onDeleteEvaluation={(evalId) =>
                       onDeleteEvaluation(item.id, evalId)
@@ -166,7 +166,6 @@ type ChecklistItemRowProps = {
   onDelete: () => void;
   onUpdateLabel: (label: string) => void;
   onUpdateMemo: (memo: string) => void;
-  onUpdateDeadline: (deadline: string) => void;
   onAddEvaluation: (ev: Omit<Evaluation, "id">) => void;
   onDeleteEvaluation: (evalId: string) => void;
 };
@@ -177,11 +176,9 @@ function ChecklistItemRow({
   onDelete,
   onUpdateLabel,
   onUpdateMemo,
-  onUpdateDeadline,
   onAddEvaluation,
   onDeleteEvaluation,
 }: ChecklistItemRowProps) {
-  const [deadlineVisible, setDeadlineVisible] = useState(!!item.deadline);
   const [memoVisible, setMemoVisible] = useState(!!item.memo);
 
   const totalScore = item.evaluations.reduce((sum, e) => sum + e.score, 0);
@@ -244,30 +241,6 @@ function ChecklistItemRow({
             </TooltipProvider>
           )}
         </div>
-
-        {/* タスク期限 */}
-        {(deadlineVisible || item.deadline) ? (
-          <div className="flex items-center gap-1.5">
-            <CalendarMinus2 className="size-3.5 shrink-0 text-muted-foreground" />
-            <div className="w-40">
-              <InlineDateField
-                key={`${item.id}-deadline`}
-                value={item.deadline ?? ""}
-                onSave={onUpdateDeadline}
-                ariaLabel="タスク期限"
-              />
-            </div>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setDeadlineVisible(true)}
-            className="flex w-fit items-center gap-1 text-xs text-muted-foreground/0 transition-opacity group-hover:text-muted-foreground/60 hover:!text-muted-foreground"
-          >
-            <CalendarMinus2 className="size-3" />
-            期限を追加
-          </button>
-        )}
 
         {/* メモ */}
         {(memoVisible || item.memo) ? (

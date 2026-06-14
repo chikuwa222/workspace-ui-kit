@@ -1,35 +1,42 @@
+import { promises as fs } from "fs";
+import path from "path";
+
 import { Workspace } from "@/components/workspace/Workspace";
-import membersData from "@/data/members.json";
-import goalsData from "@/data/goals.json";
 import workspaceData from "@/data/workspace.json";
 import {
-  membersSchema,
-  goalsSchema,
+  configSchema,
+  periodDataSchema,
   workspaceSchema,
 } from "@/lib/goal-schema";
 
-export default function Page() {
-  const membersResult = membersSchema.safeParse(membersData);
-  const goalsResult = goalsSchema.safeParse(goalsData);
-  const wsResult = workspaceSchema.safeParse(workspaceData);
+const DATA_DIR = path.join(process.cwd(), "data");
 
-  if (!membersResult.success || !goalsResult.success || !wsResult.success) {
-    const errors = [
-      !membersResult.success &&
-        `members.json: ${membersResult.error.issues[0]?.message}`,
-      !goalsResult.success &&
-        `goals.json: ${goalsResult.error.issues[0]?.message}`,
-      !wsResult.success &&
-        `workspace.json: ${wsResult.error.issues[0]?.message}`,
-    ].filter(Boolean);
-    throw new Error(`データの形式が正しくありません:\n${errors.join("\n")}`);
+export default async function Page() {
+  const wsResult = workspaceSchema.safeParse(workspaceData);
+  if (!wsResult.success) {
+    throw new Error(
+      `workspace.json: ${wsResult.error.issues[0]?.message}`,
+    );
   }
+
+  const configRaw = await fs.readFile(
+    path.join(DATA_DIR, "config.json"),
+    "utf-8",
+  );
+  const config = configSchema.parse(JSON.parse(configRaw));
+
+  const periodRaw = await fs.readFile(
+    path.join(DATA_DIR, "periods", `${config.activePeriod}.json`),
+    "utf-8",
+  );
+  const period = periodDataSchema.parse(JSON.parse(periodRaw));
 
   return (
     <Workspace
-      initialMembers={membersResult.data}
-      initialGoals={goalsResult.data}
+      initialMembers={period.members}
+      initialGoals={period.goals}
       workspace={wsResult.data}
+      activePeriod={config.activePeriod}
     />
   );
 }

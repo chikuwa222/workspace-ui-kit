@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 
-import { type Goal, type Member, calcWeightedMemberProgress } from "@/lib/goal-schema";
+import { type Goal, type Member, calcProgress } from "@/lib/goal-schema";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -86,7 +86,7 @@ export function MemberPane({
                 {members.map((member) => {
                   const active = member.id === selectedMemberId;
                   const memberGoals = goals.filter((g) => g.memberId === member.id);
-                  const progress = calcWeightedMemberProgress(memberGoals);
+                  const progress = calcProgress(memberGoals.flatMap((g) => g.items));
                   return (
                     <SidebarMenuItem key={member.id} className="group/menu-item relative">
                       <SidebarMenuButton
